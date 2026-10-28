@@ -120,4 +120,5 @@ try {
     $env:USERPROFILE = $originalProfile
     $env:CODEX_HOME = $originalCodexHome
 }
-Write-Output "PASS v1.2: install/update/uninstall, config merge/restore, backups, idempotent trigger, preserved user edits, encodings, marker and concurrency guards, override guard, orphan cleanup, WhatIf and root selection. Test files: $testRoot"
+$testedVersion = [IO.File]::ReadAllText((Join-Path $package 'VERSION')).Trim()
+Write-Output "PASS v${testedVersion}: install/update/uninstall, config merge/restore, backups, idempotent trigger, preserved user edits, encodings, marker and concurrency guards, override guard, orphan cleanup, WhatIf and root selection. Test files: $testRoot"

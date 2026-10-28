@@ -5,6 +5,8 @@ param([string] $InstallRoot, [string] $AgentsPath, [string] $ConfigPath)
 . (Join-Path $PSScriptRoot 'scripts\skill-paths.ps1')
 . (Join-Path $PSScriptRoot 'scripts\agents-trigger.ps1')
 . (Join-Path $PSScriptRoot 'scripts\config-merge.ps1')
+$packageVersion = [IO.File]::ReadAllText((Join-Path $PSScriptRoot 'VERSION')).Trim()
+if ($packageVersion -notmatch '^\d+\.\d+$') { throw 'Invalid package VERSION.' }
 
 $source = Get-FullPath (Join-Path $PSScriptRoot $script:SkillName)
 Assert-Skill $source
@@ -27,7 +29,7 @@ $configPlan = Get-ConfigPlan 'install' $ConfigPath
 if ((Test-Inside $agentsFile $target) -or (Test-Inside $agentsFile $source)) {
     throw 'Global AGENTS.md must be outside the package and installation directories.'
 }
-if (-not $PSCmdlet.ShouldProcess("$target ; $agentsFile ; $ConfigPath", 'Install v1.2 skill, global trigger and six configuration defaults; back up existing files')) { return }
+if (-not $PSCmdlet.ShouldProcess("$target ; $agentsFile ; $ConfigPath", "Install v$packageVersion skill, global trigger and six configuration defaults; back up existing files")) { return }
 
 New-Item -ItemType Directory -Path $backupRoot -Force | Out-Null
 $staging = New-BackupPath $backupRoot 'staging'
@@ -60,7 +62,7 @@ try {
     $configSaved = $true
     Write-Output "Installed: $target"
     if ($previous) { Write-Output "Previous version: $previous" }
-    Write-Output 'v1.2 installed. Restart Codex to reload configuration and global guidance.'
+    Write-Output "v$packageVersion installed. Restart Codex to reload configuration and global guidance."
 } catch {
     $failure = $_
     if ($configSaved) { Save-ConfigPlan $configPlan $backupRoot -Rollback }
