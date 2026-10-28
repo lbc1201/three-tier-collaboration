@@ -1,91 +1,88 @@
-# 三层项目协作 Skill 安装说明
+# 三层项目协作 Skill v1.1
 
-## 1. 自动安装与卸载（Windows，约 1 分钟）
+v1.1 新增：安装时向全局 `AGENTS.md` 写入受管理的触发段；卸载时仅移除该段。完整三层规则仍放在 Skill 中。v1.0 不会写全局规则。
 
-解压整个 ZIP 后，在解压目录空白处右键，选择“在终端中打开”。如果使用 GitHub 的“Download ZIP”，先进入同时包含 `install.ps1` 和 `README.md` 的目录。
+## 1. 自动安装（约 1 分钟）
 
-安装：
+1. 解压 `three-tier-collaboration-v1.1.zip`（仓库内也提供 `three-tier-collaboration.zip`）。
+2. 在同时包含 `install.ps1`、`README.md` 的目录空白处右键，选择“在终端中打开”。
+3. 执行安装命令：
 
 ```powershell
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\install.ps1
 ```
 
-卸载：
+无需管理员权限。`-ExecutionPolicy Bypass` 仅作用于本次启动的进程，不修改永久执行策略。PowerShell 7 也可使用 `pwsh -NoProfile -File .\install.ps1`。
+
+脚本先查找已有同名安装；未安装时，优先使用已设置的 `CODEX_HOME\skills`，其次选择已有个人 Skill 目录。全新环境默认 `%USERPROFILE%\.agents\skills`；本机已有 `.codex\skills`，通常会选择该目录。多个已有安装会要求明确指定目录。
+
+自定义目录：
+
+```powershell
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\install.ps1 -InstallRoot "$env:USERPROFILE\.codex\skills"
+```
+
+`-InstallRoot` 指向父目录 `skills`。追加 `-WhatIf` 只预览，不写文件。请保持 `install.ps1`、`uninstall.ps1`、`scripts`、`assets` 和 `three-tier-collaboration` 的相对位置。
+
+## 2. 全局 AGENTS.md 的修改方式
+
+全局规则默认位于 `%USERPROFILE%\.codex\AGENTS.md`；设置了 `CODEX_HOME` 时使用该目录下的 `AGENTS.md`。`-InstallRoot` 不改变这个全局位置。测试或特殊部署可另传 `-AgentsPath "D:\指定目录\AGENTS.md"`，卸载时使用相同参数。
+
+触发段模板为 `assets/agents-trigger.md`。只管理以下标记之间的内容：
+
+```text
+<!-- BEGIN three-tier-collaboration managed trigger -->
+<!-- END three-tier-collaboration managed trigger -->
+```
+
+安装前先校验文件和标记，对现有 `AGENTS.md` 保存完整备份，再追加或更新触发段；文件不存在时创建。重复安装不会重复添加触发段。保留标记外的原文、UTF-8/UTF-16 编码和 BOM。个人规则应写在标记外；标记内的内容会在更新时替换、卸载时移除。原有完整三层规则若已写在标记外，不会自动删除或迁移。
+
+若同目录存在非空的 `AGENTS.override.md`，它会优先于 `AGENTS.md` 加载；安装脚本会在修改前停止，要求用户处理该优先级，不擅自修改 override 文件。标记缺失配对、重复、顺序错误、编码不支持或检测到并发改写时，也会停止并报告原因。
+
+安装完成后新开聊天，使全局规则加载；必要时重启 Codex。已有聊天中的规则不会因磁盘文件改变立即替换。触发段提高发现可靠性，但模型指令不能保证每次执行绝对一致，也不能增加平台权限。
+
+## 3. 卸载、升级与备份
 
 ```powershell
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\uninstall.ps1
 ```
 
-无需管理员权限。`-ExecutionPolicy Bypass` 仅作用于本次启动的 PowerShell 进程，不修改系统的永久执行策略。也可在 PowerShell 7 中直接执行 `pwsh -NoProfile -File .\install.ps1` 或对应卸载命令。
+自定义安装目录或规则文件时，卸载传入与安装相同的 `-InstallRoot`、`-AgentsPath` 参数。可追加 `-WhatIf` 预览。
 
-脚本会先查找已安装的同名 Skill；未安装时，依次考虑已设置的 `CODEX_HOME\skills`、已有的个人 Skill 目录。全新环境默认使用 `%USERPROFILE%\.agents\skills`。本机已有 `.codex\skills`，通常会采用该目录。若发现多个已有安装，脚本停止并要求指定目录。
+升级前将旧 Skill 移到所选 `skills` 目录旁的 `skill-backups`，卸载也采用移动备份，不递归删除文件。`AGENTS.md` 每次实际修改前均保留完整备份，位置显示在终端。
 
-指定安装目录（卸载时使用同一个目录）：
+卸载只移除标记段，不用旧版整份文件覆盖当前文件，因而保留用户后来添加的其他规则。分隔空行及安装时新建的空规则文件可保留。即使 Skill 已被手动移走，卸载脚本仍可清理孤立触发段。重复卸载不会报错；不修改 `config.toml`，不删除项目成果、状态或登记记录。
 
-```powershell
-powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\install.ps1 -InstallRoot "$env:USERPROFILE\.codex\skills"
-powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\uninstall.ps1 -InstallRoot "$env:USERPROFILE\.codex\skills"
-```
+安装失败时会尽量恢复原 Skill，并保留相关副本。恢复 Skill 可将备份目录以 `three-tier-collaboration` 为名移回原 `skills` 目录；全局规则需先对比当前内容与备份，避免覆盖之后的编辑。仅恢复 Skill 文件不会自动恢复触发段，可重新运行安装脚本。
 
-`-InstallRoot` 指向父目录 `skills`，不要指向 `three-tier-collaboration` 本身。追加 `-WhatIf` 可以只预览，不修改文件。
+## 4. 使用与启用
 
-安装前会校验文件复制结果，更新时将已有版本移到所选 `skills` 目录旁的 `skill-backups`。卸载也采用移动备份方式，保留已修改的文件；重复卸载不会报错。备份路径会显示在终端。恢复时，将备份目录以 `three-tier-collaboration` 为名移回原 `skills` 目录，已有同名安装先移出备份。
-
-脚本拒绝操作符号链接、目录联接或身份不符的同名目录。不要分开移动 `install.ps1`、`uninstall.ps1`、`scripts` 和 Skill 文件夹；它们需要保持包内的相对位置。脚本只负责 Skill 文件，不修改全局配置、不启用总控身份、不删除项目成果。已有聊天中已加载的规则不会因移动文件立即从上下文消失。
-
-## 2. 手动安装（Windows，约 2 分钟）
-
-1. 右键 `three-tier-collaboration.zip`，选择“全部解压缩”。
-2. 打开解压目录，找到 `three-tier-collaboration` 文件夹；其内部应直接包含 `SKILL.md`、`agents` 和 `references`。
-3. 按 `Win + R`，输入 `%USERPROFILE%\.codex\skills` 并回车。这是本包制作时当前电脑已验证能被识别的个人 Skill 目录。目录不存在时，先查看下一节的版本差异。
-4. 把整个 `three-tier-collaboration` 文件夹复制进去。同名目录已存在时，先将旧目录移到安装目录之外备份，再复制新版，不直接覆盖。
-5. 在 Codex 输入 `$three-tier-collaboration` 检查是否识别；若没有出现，重启 Codex 后再试。
-
-正确的安装层级：
+安装后，在名称严格为“总控”的聊天中直接发送：
 
 ```text
-%USERPROFILE%\.codex\skills\three-tier-collaboration\SKILL.md
-%USERPROFILE%\.codex\skills\three-tier-collaboration\agents\openai.yaml
-%USERPROFILE%\.codex\skills\three-tier-collaboration\references\architecture-rules.md
-%USERPROFILE%\.codex\skills\three-tier-collaboration\references\fallback-config.toml
+添加总控身份
 ```
 
-不要只复制 `SKILL.md`，也不要多套一层同名目录。压缩包根目录的本说明无需复制到 Skill 安装目录。
-
-## 3. 不同版本的目录
-
-截至 2026-10-28，OpenAI 官方文档列出的个人目录为 `$HOME/.agents/skills`，对应 Windows 的 `%USERPROFILE%\.agents\skills`。本次使用的客户端实际从 `%USERPROFILE%\.codex\skills` 识别了此 Skill，因此上面给出本机路径。
-
-在其他电脑或版本安装时，优先采用该客户端已使用的个人 Skill 目录；没有既有目录时，可按官方文档使用 `%USERPROFILE%\.agents\skills`，自行创建缺失目录。最终层级同样应为 `skills\three-tier-collaboration\SKILL.md`。同一 Skill 只安装一份，避免两个目录都放。
-
-官方依据：[OpenAI：Build skills](https://learn.chatgpt.com/docs/build-skills)。文档说明 Skill 通常自动发现；未出现时可重启 Codex。
-
-## 4. 使用与启用是两件事
-
-安装后，可输入以下消息调用规则检查：
+全局触发段会要求先加载 `three-tier-collaboration` Skill，再核验会话名称、真实 ID 和项目，完成身份登记。必要时可明确调用：
 
 ```text
-使用 $three-tier-collaboration 检查当前项目的三层协作启用条件和工具能力。
+使用 $three-tier-collaboration
 ```
 
-若要启用项目的三层协作：
+讨论、引用或转换规则不构成启用。新增子会话、迁移与 Astra 使用仍按完整规则审批。安装成功不等于完整三层架构通过验证。
 
-1. 由用户把目标聊天名称改为严格的“总控”。
-2. 在该聊天直接发送：`添加总控身份`。本 Skill 可自动匹配该口令；若未加载，再补充发送：`使用 $three-tier-collaboration`。
-3. 由助手核验真实会话名称、ID 和项目，完成登记；缺少信息时按提示补充。
+## 5. 手动安装与版本目录
 
-调用 Skill 不等于已经启用。新增独立子会话仍须先审阅并批准具体方案；迁移和 Astra 使用仍须按规则单独授权。完整架构能否运行取决于客户端实际工具及其用途限制，安装成功不代表完整架构测试通过。
+若只手动复制 `three-tier-collaboration` 文件夹到个人 Skill 目录，则不会写入全局触发段。完整 v1.1 安装请使用 `install.ps1`。正确目录层级是 `skills\three-tier-collaboration\SKILL.md`，不要多套同名目录，也不要只复制一个文件。
 
-## 5. TOML 配置参考
+截至 2026-10-28，官方文档列出的个人 Skill 目录为 `$HOME/.agents/skills`，Windows 对应 `%USERPROFILE%\.agents\skills`；当前客户端实际也从 `%USERPROFILE%\.codex\skills` 识别过本 Skill。优先使用客户端已有目录，同一 Skill 只安装一份。
 
-`references/fallback-config.toml` 保留用户提供的原始配置，仅供参考，不会自动执行或加载。安装 Skill 无需把它复制到全局配置，也不要用它覆盖 `config.toml`。其中字段、模型名和并发设置的实际支持情况需要按当前客户端另行核验。
+官方依据：[Build skills](https://learn.chatgpt.com/docs/build-skills)、[AGENTS.md](https://learn.chatgpt.com/docs/agent-configuration/agents-md)。
 
-此包不会自动修改全局 `AGENTS.md`。原规则中提到由全局文件提供规则的内容，在 Skill 中已有加载方式的适配说明。
+`three-tier-collaboration/references/fallback-config.toml` 为原始配置参考，不自动加载，不要用它覆盖全局 `config.toml`。配置字段、模型名和并发设置须按当前客户端另行核验。
 
-## 6. 验证与交付范围
+## 6. 测试与交付范围
 
-卸载时，把安装的 `three-tier-collaboration` 文件夹移到所有 Skill 扫描目录之外；若客户端仍显示旧条目，重启 Codex。项目成果和协作记录不会因此删除。
+`tests/test-installers.ps1` 仅在随机临时目录中运行，并显式使用临时 `AGENTS.md`。覆盖安装、升级备份、可恢复卸载、重复执行、预览、原规则及后续编辑保留、UTF-8/UTF-16 编码、异常标记、并发编辑、override 优先级、孤立触发段清理与目录选择。测试文件保留供检查。
 
-开发者可运行 `tests/test-installers.ps1` 验证脚本。测试仅在随机临时目录执行，并保留测试文件便于检查。覆盖首次安装、升级备份、可恢复卸载、重复卸载、预览模式、身份校验及安装目录选择；不等于已验证完整三层协作架构。
-
-本 ZIP 提供 Skill、README、安装与卸载脚本、共用路径检查脚本及测试。制作方本次仅在临时目录测试，未安装到真实 Codex Skill 目录，也未修改全局配置。
+本包含 Skill、README、VERSION、安装卸载脚本、触发模板、辅助脚本和测试。制作方仅在临时目录测试，未安装到你的真实 Codex Skill 目录，也未改写实际全局 `AGENTS.md`。只有你运行安装脚本后才会修改。

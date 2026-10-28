@@ -1,8 +1,9 @@
 # Requires Windows PowerShell 5.1 or PowerShell 7. No administrator privileges required.
 [CmdletBinding(SupportsShouldProcess = $true)]
-param([string] $InstallRoot)
+param([string] $InstallRoot, [string] $AgentsPath)
 
 . (Join-Path $PSScriptRoot 'scripts\skill-paths.ps1')
+. (Join-Path $PSScriptRoot 'scripts\agents-trigger.ps1')
 
 $source = Get-FullPath (Join-Path $PSScriptRoot $script:SkillName)
 Assert-Skill $source
@@ -16,11 +17,17 @@ $backupRoot = Get-BackupRoot $root
 if ((Test-Inside $backupRoot $source) -or (Test-Inside $source $backupRoot)) {
     throw 'Backup and package source must be separate directories.'
 }
-if (-not $PSCmdlet.ShouldProcess($target, 'Install skill; preserve any existing version in skill-backups')) { return }
+$agentsFile = Get-GlobalAgentsPath $AgentsPath
+$agentsEdit = Get-AgentsEdit $agentsFile (Join-Path $PSScriptRoot 'assets\agents-trigger.md') $true
+if ((Test-Inside $agentsFile $target) -or (Test-Inside $agentsFile $source)) {
+    throw 'Global AGENTS.md must be outside the package and installation directories.'
+}
+if (-not $PSCmdlet.ShouldProcess("$target ; $agentsFile", 'Install v1.1 skill and upsert managed global trigger; back up existing files')) { return }
 
 New-Item -ItemType Directory -Path $backupRoot -Force | Out-Null
 $staging = New-BackupPath $backupRoot 'staging'
 $previous = $null
+$newInstalled = $false
 try {
     Copy-Item -LiteralPath $source -Destination $staging -Recurse
     Assert-Skill $staging
@@ -38,12 +45,20 @@ try {
         Move-Item -LiteralPath $target -Destination $previous
     }
     Move-Item -LiteralPath $staging -Destination $target
+    $newInstalled = $true
     Assert-Skill $target
+    Save-AgentsEdit $agentsEdit $backupRoot
     Write-Output "Installed: $target"
     if ($previous) { Write-Output "Previous version: $previous" }
-    Write-Output 'Invoke: $three-tier-collaboration. Restart Codex if it does not appear.'
+    Write-Output 'v1.1 installed. Start a new chat to load global guidance; restart Codex if needed.'
 } catch {
     $failure = $_
+    if ($newInstalled -and (Test-Path -LiteralPath $target)) {
+        Assert-Skill $target
+        $failedCopy = New-BackupPath $backupRoot 'failed-install'
+        Move-Item -LiteralPath $target -Destination $failedCopy
+        Write-Warning "Failed installation preserved at: $failedCopy"
+    }
     if ($previous -and (Test-Path -LiteralPath $previous) -and -not (Test-Path -LiteralPath $target)) {
         Assert-NoLinks $target
         Move-Item -LiteralPath $previous -Destination $target
