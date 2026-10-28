@@ -1,108 +1,126 @@
 # 三层项目协作 Skill v1.3
 
-v1.3 修订总控漏派发问题：已登记总控每轮实质执行前先派给匹配的直属子会话，修改派回原会话；“简单任务”“报告结构调整”不能绕过。全局触发段也覆盖已登记成员的后续项目任务。保留 v1.2 的配置合并恢复与 v1.1 的触发段安装卸载功能。
+在 Codex 中按“总控会话 → 独立子会话 → 子代理”组织项目，支持逐级派发、验收、状态保存与恢复。
 
-## 版本迭代
+## 1. 安装方式
 
-**当前版本：v1.3。** 以下按新到旧排列，日期均为北京时间。后续功能更新在此追加记录，并同步更新 `VERSION`、Skill 元数据和对应安装包。
+### 方式一：向 Codex 发送安装指令
 
-| 版本 | 日期 | 本版新增或修订 | 完整安装时影响的全局文件 |
-| --- | --- | --- | --- |
-| **v1.3** | 2026-10-28 | 修订总控漏派发：实质工作先实际派发、修改交回原子会话；明确纯排版与实质改写的边界；区分发送、接续、返回和验收；防止以“简单任务”“报告结构调整”绕过分工；触发段覆盖已登记项目的后续任务 | 受管理的 `AGENTS.md` 触发段；沿用 v1.2 的六项 `config.toml` 配置合并与恢复 |
-| **v1.2** | 2026-10-28 | 新增 `config.toml` 六项配置的合并、备份及所有权记录；重复安装保留基线；卸载逐项恢复，保留后续用户修改；新增 TOML 专项测试，安装需要 Python 3.11+ | `AGENTS.md` 触发段及六项 `config.toml` 配置，保留其他配置 |
-| **v1.1** | 2026-10-28 | 新增全局 `AGENTS.md` 触发段；安装时追加或更新唯一标记段，卸载时只移除该段；保留其他规则、编码和备份 | 仅 `AGENTS.md` 的受管理触发段，不修改 `config.toml` |
-| **v1.0** | 2026-10-28 | 将三层架构规则与兜底 TOML 转为独立 Skill；提供 README、安装卸载脚本、版本备份及可恢复卸载 | 不修改全局 `AGENTS.md` 或 `config.toml`；TOML 仅作参考 |
+将下面的内容直接发送给 Codex，也可以先下载并附上 [v1.3 完整 ZIP](https://github.com/lbc1201/three-tier-collaboration/blob/main/three-tier-collaboration-v1.3.zip)：
 
-### 安装包与升级说明
+```text
+请安装 https://github.com/lbc1201/three-tier-collaboration 的 v1.3 完整包。
+先读取 README，再使用完整包的 install.ps1 安装 Skill、全局 AGENTS.md 触发段和六项 config.toml 默认配置，不要只复制 SKILL.md。
+保留其他全局规则和配置，修改前备份，完成后核验安装版本、触发段和配置结果。若已有完整三层规则写在标记段之外，先指出其位置，不要静默删除。若仓库不可访问或缺少依赖，说明具体缺口。
+```
 
-仓库保留 [v1.3](https://github.com/lbc1201/three-tier-collaboration/blob/main/three-tier-collaboration-v1.3.zip)、[v1.2](https://github.com/lbc1201/three-tier-collaboration/blob/main/three-tier-collaboration-v1.2.zip)、[v1.1](https://github.com/lbc1201/three-tier-collaboration/blob/main/three-tier-collaboration-v1.1.zip) 安装包；`three-tier-collaboration.zip` 指向当前版本，旧版本号文件保留对应历史内容。v1.0 在此保留迭代记录。
+此仓库为私有仓库，需要当前 GitHub 账号具备访问权限。安装需要 Windows PowerShell 5.1 或 PowerShell 7，以及命令行可调用的 **Python 3.11+**；不需要额外 Python 包或管理员权限。
 
-升级时，解压目标版本并运行其中的 `install.ps1`；无需先卸载旧版，安装器会备份已有 Skill。**从 v1.0/v1.1 升级到 v1.2 及以后版本，会新增六项全局配置的合并行为**，可先追加 `-WhatIf` 查看预览。仅下载或解压 ZIP 不会更新本机安装，也不会修改全局文件。
+### 方式二：使用 PowerShell 命令
 
-新版规则要求在版本变化或上下文不确定时主动重读 Skill。正在进行的旧聊天，建议升级后明确要求它读取新版一次；不需要每轮重复发送“重新加载”。磁盘更新不保证所有运行中聊天立即采用新版上下文。v1.3 加强的是执行指令和验收要求，不是运行时拦截器，不承诺模型绝不漏派任务。
-
-## 1. 自动安装（约 1 分钟）
-
-1. 解压 `three-tier-collaboration-v1.3.zip`（仓库内也提供 `three-tier-collaboration.zip`）。
-2. 在同时包含 `install.ps1`、`README.md` 的目录空白处右键，选择“在终端中打开”。
+1. 下载并完整解压 [v1.3 ZIP](https://github.com/lbc1201/three-tier-collaboration/blob/main/three-tier-collaboration-v1.3.zip)。
+2. 在同时包含 `install.ps1` 和 `README.md` 的目录打开终端。
 3. 执行安装命令：
 
 ```powershell
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\install.ps1
 ```
 
-无需管理员权限；需要已安装、命令行可调用的 Python 3.11+，不需要额外 Python 包。缺少依赖时会在修改前停止。`-ExecutionPolicy Bypass` 仅作用于本次启动的进程，不修改永久执行策略。PowerShell 7 也可使用 `pwsh -NoProfile -File .\install.ps1`。
+先预览安装影响、不写文件：
 
-脚本先查找已有同名安装；未安装时，优先使用已设置的 `CODEX_HOME\skills`，其次选择已有个人 Skill 目录。全新环境默认 `%USERPROFILE%\.agents\skills`；本机已有 `.codex\skills`，通常会选择该目录。多个已有安装会要求明确指定目录。
+```powershell
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\install.ps1 -WhatIf
+```
 
-自定义目录：
+PowerShell 7 也可使用 `pwsh -NoProfile -File .\install.ps1`。`-ExecutionPolicy Bypass` 仅作用于本次进程，不修改永久执行策略。安装后重启 Codex，核验新配置是否加载。
+
+### 安装位置、升级与卸载
+
+Skill 目录优先复用已有同名安装；未安装时，优先使用 `$CODEX_HOME\skills`，其次选择已有个人 Skill 目录，全新环境默认 `%USERPROFILE%\.agents\skills`。当前制作环境使用 `%USERPROFILE%\.codex\skills`；多个已有安装会要求明确指定目录。
+
+全局规则默认位于 `%USERPROFILE%\.codex\AGENTS.md`，已设置 `CODEX_HOME` 时使用该目录；配置默认是实际 `AGENTS.md` 同目录的 `config.toml`。自定义安装示例：
 
 ```powershell
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\install.ps1 -InstallRoot "$env:USERPROFILE\.codex\skills"
 ```
 
-`-InstallRoot` 指向父目录 `skills`。追加 `-WhatIf` 只预览，不写文件。请保持 `install.ps1`、`uninstall.ps1`、`scripts`、`assets` 和 `three-tier-collaboration` 的相对位置。
+还可传入 `-AgentsPath "D:\指定目录\AGENTS.md"`、`-ConfigPath "D:\指定目录\config.toml"`。`-InstallRoot` 指向父目录 `skills`；卸载时使用与安装相同的自定义参数。
 
-## 2. 全局 AGENTS.md 的修改方式
+升级无需先卸载：解压目标版本后重新运行该版本的 `install.ps1`，安装器会备份旧版。卸载命令：
 
-全局规则默认位于 `%USERPROFILE%\.codex\AGENTS.md`；设置了 `CODEX_HOME` 时使用该目录下的 `AGENTS.md`。`-InstallRoot` 不改变这个全局位置。测试或特殊部署可另传 `-AgentsPath "D:\指定目录\AGENTS.md"`，卸载时使用相同参数。
+```powershell
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\uninstall.ps1
+```
 
-触发段模板为 `assets/agents-trigger.md`。只管理以下标记之间的内容：
+也可向 Codex 发送：
+
+```text
+请使用 three-tier-collaboration 完整包的 uninstall.ps1 卸载该 Skill，移除全局 AGENTS.md 中本 Skill 的标记触发段，并按安装记录恢复本 Skill 改过且之后未被我更改的配置项。保留其他规则、配置及项目成果，完成后核验卸载结果。
+```
+
+请保持包内 `install.ps1`、`uninstall.ps1`、`scripts`、`assets` 和 `three-tier-collaboration` 的相对位置。仅下载、解压或手动复制 Skill 文件夹，不会完成全局触发段和配置的安装。
+
+## 2. 使用方式
+
+### 首次启用项目
+
+1. 由用户将项目的主要聊天名称改为严格的“总控”。
+2. 在该聊天直接发送：
+
+```text
+添加总控身份
+```
+
+助手应加载 Skill，核验真实会话名称、ID 和项目并登记身份。仅安装 Skill、调用 Skill、讨论或引用规则，都不等于启用三层架构。
+
+没有自动识别时，可明确调用：
+
+```text
+使用 $three-tier-collaboration。添加总控身份。
+```
+
+### 启用后的日常使用
+
+在总控中直接提出具体任务，例如“梳理文献综述框架”“修改第二部分的研究逻辑”“继续上次任务”。总控应复用已登记的直属子会话，实质修改派回原负责会话；确需新建独立子会话时，先展示具体方案，取得用户批准后创建。
+
+用户可直接进入子会话继续工作。用户批准的项目内直属双向通信，在原任务范围内沿用授权，不需要逐条重新确认；迁移、阶段推进和 Astra 调用仍按各自要求核验。
+
+### 升级后如何生效
+
+新版规则要求在版本变化、未加载或上下文不确定时主动重读 Skill。正在进行的旧聊天，建议升级后发送一次：
+
+```text
+读取已安装的 three-tier-collaboration v1.3，并按新版规则继续。
+```
+
+**不需要每轮重复发送“重新加载”。** 更新磁盘文件不保证所有运行中聊天立即采用新版上下文；必要时重启 Codex。
+
+## 3. 具体功能
+
+| 功能 | 具体行为 |
+| --- | --- |
+| 三层分工 | 总控管理独立、可恢复的子会话；子会话按需管理直属子代理。优先复用，不把临时代理冒充独立子会话，也不越级调度 |
+| 先派发、后整合 | 总控在实质检索、分析、编程、计算或内容改写前先实际派发。改变研究问题、数据范围、方法、机制、结论或问题层级，不能以“简单”“报告结构调整”为由自行执行 |
+| 逐级验收与恢复 | 分别核验消息发送、任务接续、成果返回与验收；保存真实 ID、职责、任务、状态和交接。额度恢复后检查相关直属子会话，按依赖恢复未完成任务 |
+| 模型与授权管理 | 总控目标模型为 `gpt-6.1-sol`，各层目标推理强度为 `medium`；直属下级按任务选择 Luna、Terra、Sol。新增子会话、迁移和 Astra 调用遵守相应授权边界 |
+| 安装、备份与卸载 | 安装 Skill 和全局触发段，合并六项默认配置；备份旧版本与被修改文件。卸载移出 Skill、移除标记段，并按所有权记录恢复配置 |
+
+总控可直接处理协调、关键独立验收，以及已验收内容的排版、编号和机械整合；用户明确指定总控亲自完成的具体任务可按授权范围例外。没有匹配下级、授权或工具时，说明具体缺口，不静默接管。漏派后补做复核可修复质量问题，但不能追认原流程合规。
+
+### 全局规则的维护
+
+只追加或更新 `AGENTS.md` 中以下标记之间的触发段，完整架构规则保留在 Skill 中：
 
 ```text
 <!-- BEGIN three-tier-collaboration managed trigger -->
 <!-- END three-tier-collaboration managed trigger -->
 ```
 
-安装前先校验文件和标记，对现有 `AGENTS.md` 保存完整备份，再追加或更新触发段；文件不存在时创建。重复安装不会重复添加触发段。保留标记外的原文、UTF-8/UTF-16 编码和 BOM。个人规则应写在标记外；标记内的内容会在更新时替换、卸载时移除。原有完整三层规则若已写在标记外，不会自动删除或迁移。
+修改前备份整份文件，重复安装不重复添加触发段；卸载只移除该段，保留标记之外的原文与后续用户编辑。个人规则应写在标记外。支持 AGENTS.md 的 UTF-8/UTF-16 编码与 BOM；若存在优先加载的非空 `AGENTS.override.md`、标记异常或并发编辑，先停止并说明原因。原有完整三层规则若在标记之外，不自动删除。
 
-若同目录存在非空的 `AGENTS.override.md`，它会优先于 `AGENTS.md` 加载；安装脚本会在修改前停止，要求用户处理该优先级，不擅自修改 override 文件。标记缺失配对、重复、顺序错误、编码不支持或检测到并发改写时，也会停止并报告原因。
+### 六项默认配置
 
-安装完成后新开聊天，使全局规则加载；必要时重启 Codex。已有聊天中的规则不会因磁盘文件改变立即替换。触发段提高发现可靠性，但模型指令不能保证每次执行绝对一致，也不能增加平台权限。
-
-## 3. 卸载、升级与备份
-
-```powershell
-powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\uninstall.ps1
-```
-
-自定义安装目录或规则文件时，卸载传入与安装相同的 `-InstallRoot`、`-AgentsPath` 参数。可追加 `-WhatIf` 预览。
-
-升级前将旧 Skill 移到所选 `skills` 目录旁的 `skill-backups`，卸载也采用移动备份，不递归删除文件。`AGENTS.md` 每次实际修改前均保留完整备份，位置显示在终端。
-
-卸载只移除标记段，不用旧版整份文件覆盖当前文件，因而保留用户后来添加的其他规则。分隔空行及安装时新建的空规则文件可保留。即使 Skill 已被手动移走，完整包的卸载脚本仍可清理孤立触发段及本包接管的配置值。重复卸载不会报错；不删除项目成果、状态或登记记录。
-
-安装失败时会尽量恢复原 Skill，并保留相关副本。恢复 Skill 可将备份目录以 `three-tier-collaboration` 为名移回原 `skills` 目录；全局规则需先对比当前内容与备份，避免覆盖之后的编辑。仅恢复 Skill 文件不会自动恢复触发段，可重新运行安装脚本。
-
-## 4. 使用与启用
-
-安装后，在名称严格为“总控”的聊天中直接发送：
-
-```text
-添加总控身份
-```
-
-全局触发段会要求先加载 `three-tier-collaboration` Skill，再核验会话名称、真实 ID 和项目，完成身份登记。必要时可明确调用：
-
-```text
-使用 $three-tier-collaboration
-```
-
-讨论、引用或转换规则不构成启用。新增子会话、迁移与 Astra 使用仍按完整规则审批。安装成功不等于完整三层架构通过验证。
-
-## 5. 手动安装与版本目录
-
-若只手动复制 `three-tier-collaboration` 文件夹到个人 Skill 目录，则不会写入全局触发段，也不会应用配置。完整 v1.3 安装请使用 `install.ps1`。正确目录层级是 `skills\three-tier-collaboration\SKILL.md`，不要多套同名目录，也不要只复制一个文件。
-
-截至 2026-10-28，官方文档列出的个人 Skill 目录为 `$HOME/.agents/skills`，Windows 对应 `%USERPROFILE%\.agents\skills`；当前客户端实际也从 `%USERPROFILE%\.codex\skills` 识别过本 Skill。优先使用客户端已有目录，同一 Skill 只安装一份。
-
-官方依据：[Build skills](https://learn.chatgpt.com/docs/build-skills)、[AGENTS.md](https://learn.chatgpt.com/docs/agent-configuration/agents-md)。
-
-`three-tier-collaboration/references/fallback-config.toml` 保存六项配置目标。v1.2 及以后安装器会按这些目标合并配置，不用此文件覆盖整份全局配置。字段依据见 [OpenAI 配置参考](https://learn.chatgpt.com/docs/config-file/config-reference)。模型可用性和客户端实际加载结果需另行核验。
-
-## 6. config.toml 的合并与恢复
-
-安装器管理的六项配置为：
+从 v1.2 起，完整安装器合并以下配置，不覆盖整份 `config.toml`：
 
 ```toml
 model = "gpt-6.1-sol"
@@ -115,32 +133,29 @@ default_subagent_model = "gpt-6-luna"
 default_subagent_reasoning_effort = "medium"
 ```
 
-配置位置默认是实际 `AGENTS.md` 所在目录的 `config.toml`。可传入 `-ConfigPath "D:\指定目录\config.toml"`，卸载时使用相同参数。`-WhatIf` 会预检，但不修改配置或生成所有权记录。
+保留其他字段和注释，包括提供商、MCP、插件、审批及安全配置。写入前检查 TOML 语法及完整语义差异；已满足目标的值不改写、不接管。配置旁的 `config.toml.three-tier-collaboration.json` 记录本 Skill 实际改过的键及原值。重复安装保留原始基线；卸载只恢复当前仍等于安装值的受管项，保留用户后来修改的值，不用整份旧备份覆盖配置。
 
-保留其他字段和注释，包括提供商、MCP、插件、审批与安全配置。写入前检查 TOML 语法，生成修改计划，备份原文件，再验证修改后解析结果只涉及目标字段。六项目标已经满足时，不改写配置内容，也不接管这些已有值。
+配置合并支持 UTF-8、UTF-8 BOM 及常见根级键和 `[agents]` 表。UTF-16 配置、无法安全定位的复杂布局、旧别名 `agents.max_threads` 冲突、语法错误或并发改写会在覆盖前报告。被管理值按语义恢复，不保证原引号样式；卸载可保留空表、空文件及已关闭的记录。备份位置显示在终端；配置备份可能含凭据，请仅保存在个人本机。
 
-配置旁的 `config.toml.three-tier-collaboration.json` 记录本包实际修改的键及原值。重复安装保留原始基线；卸载只恢复当前仍等于本包安装值的受管项。用户后来手动改过的项保持原样，不用整份旧备份覆盖配置。可能保留空 `[agents]` 表、空文件及已关闭的记录；被管理值按语义恢复，不保证原引号样式。
+### 能力边界与验证
 
-支持 UTF-8、UTF-8 BOM 及常见根级键和 `[agents]` 表。复杂内联或点号 agents 写法需要先整理为普通表；不支持 UTF-16 配置。发现旧别名 `agents.max_threads` 时会停止，避免与新键重复。布局不支持、语法错误或并发修改均在覆盖前报告，不强行重写。
+Skill 提供执行指令和验收要求，不是运行时拦截器，不能保证模型绝不漏派，也不能增加客户端权限。文件写入成功不等于账号支持目标模型或当前聊天已切换；profile、项目配置、会话参数和管理策略仍可能优先。新建、通信、恢复、迁移和完整架构必须分别按真实工具与证据核验。
 
-安装器发生后续失败时，会尝试恢复已经写入的触发段、配置与原 Skill，保留备份。配置备份可能包含凭据，请仅保存在个人本机，不上传 GitHub 或发到聊天。安装完重启 Codex 后再核验实际加载，不代表当前聊天模型已自动切换。
+安装与配置测试分别为 `tests/test-installers.ps1` 和 `python tests/test_config.py`，仅在临时目录执行。安装流程已在 PowerShell 5.1、7 验证，配置专项测试 10 项通过；这些结果不代表真实多会话行为或完整架构已经全部验证。
 
-## 7. 测试与交付范围
+官方说明：[Skills](https://learn.chatgpt.com/docs/build-skills)、[AGENTS.md](https://learn.chatgpt.com/docs/agent-configuration/agents-md)、[配置参考](https://learn.chatgpt.com/docs/config-file/config-reference)。
 
-v1.3 对以下情况规定了不同处理方式：
+## 4. 版本迭代
 
-| 收到的要求 | 总控应如何处理 |
-| --- | --- |
-| 调整报告结构，同时改变问题层级、数据或方法 | 先派原负责子会话实质修改，再验收整合 |
-| “直接改”“很简单”“你决定”，但改变了研究内容 | 仍先派发；这些话不指定总控亲自执行 |
-| 对已验收内容改编号、链接、排版 | 总控可直接机械整合，无需形式派发 |
-| 下级尚在运行或只有旧成果 | 核验任务接续，等待本轮所需成果，不提前宣称完整完成 |
-| 没有匹配下级或工具受限 | 说明缺口，按已有规则复用、审批或处理依赖，不静默接管 |
+**当前版本：v1.3。** 按新到旧排列，日期均为北京时间。
 
-用户明确指定总控亲自执行的具体任务可按授权范围例外。总控仍负责关键独立验收，不将整项重做包装为验收。若已经漏派，保留事实，将草稿交下级实质核验或修改；补做审查不等于原流程已合规。
+| 版本 | 日期 | 新增或修订 | 完整安装时的全局文件影响 |
+| --- | --- | --- | --- |
+| **v1.3** | 2026-10-28 | 修订总控漏派发：实质执行前实际派发、修改交回原子会话；明确纯排版与实质改写的边界；区分发送、接续、返回和验收；触发段覆盖已登记项目的后续任务 | 更新受管理的 `AGENTS.md` 触发段；沿用六项 `config.toml` 配置合并与恢复 |
+| **v1.2** | 2026-10-28 | 新增六项配置合并、备份及所有权记录；重复安装保留基线；卸载逐项恢复并保留后续用户修改；新增 TOML 专项测试，需要 Python 3.11+ | `AGENTS.md` 触发段及六项 `config.toml` 配置，保留其他配置 |
+| **v1.1** | 2026-10-28 | 新增全局触发段的安装、更新与卸载；保留其他规则、编码和备份 | 仅 `AGENTS.md` 的受管理触发段，不修改 `config.toml` |
+| **v1.0** | 2026-10-28 | 将三层架构规则与兜底 TOML 转为 Skill，提供 README、安装卸载脚本、版本备份和可恢复卸载 | 不修改全局 `AGENTS.md` 或 `config.toml`；TOML 仅作参考 |
 
-这些是指令与验收边界，不是运行时拦截器；不能保证模型绝不漏派。规则和安装脚本验证通过不代表真实多会话行为或完整架构已经通过测试。正在进行的总控聊天建议在升级后明确读取新版一次，无需每轮重复；更新磁盘文件不会撤回已发生的执行，也不保证替换所有旧上下文。
+历史安装包：[v1.3](https://github.com/lbc1201/three-tier-collaboration/blob/main/three-tier-collaboration-v1.3.zip) · [v1.2](https://github.com/lbc1201/three-tier-collaboration/blob/main/three-tier-collaboration-v1.2.zip) · [v1.1](https://github.com/lbc1201/three-tier-collaboration/blob/main/three-tier-collaboration-v1.1.zip)。`three-tier-collaboration.zip` 为当前版本；v1.0 在此保留迭代记录。
 
-`tests/test-installers.ps1` 仅在随机临时目录中运行，并显式使用临时 `AGENTS.md` 和 `config.toml`。覆盖安装、升级备份、可恢复卸载、配置合并与恢复、重复执行、预览、原规则及后续编辑保留、AGENTS 编码、异常标记、并发编辑、override 优先级、孤立触发段清理与目录选择。`python tests/test_config.py` 另测配置的备份、语义保留、幂等、回滚及冲突处理。测试文件保留供检查。
-
-本包含 Skill、README、VERSION、安装卸载脚本、触发模板、辅助脚本和测试。本次制作仅在临时目录验证配置合并；已安装 Skill 的指引与辅助脚本可单独更新，真实全局规则与配置仅在用户明确授权应用或运行完整安装器后修改。
+从 v1.0/v1.1 升级到 v1.2 及以后版本，会新增六项全局配置的合并行为，可先用 `-WhatIf` 预览。后续功能迭代在本节追加记录，并同步版本标识与安装包；本次仅整理 README，版本保持 v1.3。
