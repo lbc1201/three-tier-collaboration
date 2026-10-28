@@ -12,6 +12,9 @@ function Assert([bool] $Condition, [string] $Message) {
 
 & (Join-Path $package 'install.ps1') -InstallRoot $scan -AgentsPath $agents -WhatIf
 Assert (-not (Test-Path -LiteralPath $testRoot)) 'WhatIf mutated the filesystem.'
+New-Item -ItemType Directory -Path (Split-Path -Parent $agents) -Force | Out-Null
+$config = Join-Path (Split-Path -Parent $agents) 'config.toml'
+[IO.File]::WriteAllText($config, "# retain config comment`nmodel = 'before-install'`napproval_policy = 'on-request'`n")
 & (Join-Path $package 'install.ps1') -InstallRoot $scan -AgentsPath $agents
 Assert (Test-Path -LiteralPath (Join-Path $target 'SKILL.md')) 'Fresh install failed.'
 Assert ((Get-FileHash -LiteralPath (Join-Path $target 'SKILL.md')).Hash -eq
@@ -41,6 +44,8 @@ Assert ([IO.File]::ReadAllText($agents) -eq $installedRules) 'Uninstall WhatIf c
 Assert ([IO.File]::ReadAllText($agents).StartsWith($existingRules)) 'Uninstall changed existing rules.'
 Assert ([IO.File]::ReadAllText($agents).Contains('Retain this too.')) 'Uninstall lost later user edits.'
 Assert (-not [IO.File]::ReadAllText($agents).Contains('<!-- BEGIN three-tier-collaboration managed trigger -->')) 'Trigger still present.'
+Assert ([IO.File]::ReadAllText($config).Contains('before-install')) 'Original model was not restored.'
+Assert ([IO.File]::ReadAllText($config).Contains("approval_policy = 'on-request'")) 'Unrelated config changed.'
 Assert (-not (Test-Path -LiteralPath $target)) 'Uninstall left target installed.'
 $saved = @(Get-ChildItem -LiteralPath (Join-Path $testRoot 'skill-backups') -Directory -Filter '*uninstalled*')
 Assert ($saved.Count -eq 1 -and (Test-Path -LiteralPath (Join-Path $saved[0].FullName 'SKILL.md'))) 'Recoverable copy missing.'
@@ -115,4 +120,4 @@ try {
     $env:USERPROFILE = $originalProfile
     $env:CODEX_HOME = $originalCodexHome
 }
-Write-Output "PASS v1.1: install/update/uninstall, backups, idempotent trigger, preserved user edits, UTF-8/UTF-16 BOM, malformed markers, concurrent edits, override guard, orphan cleanup, WhatIf, identity and root selection. Test files: $testRoot"
+Write-Output "PASS v1.2: install/update/uninstall, config merge/restore, backups, idempotent trigger, preserved user edits, encodings, marker and concurrency guards, override guard, orphan cleanup, WhatIf and root selection. Test files: $testRoot"

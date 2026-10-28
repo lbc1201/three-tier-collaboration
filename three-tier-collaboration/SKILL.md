@@ -1,7 +1,7 @@
 ---
 name: three-tier-collaboration
 metadata:
-  version: "1.1"
+  version: "1.2"
 description: 按需启用并管理“总控会话—独立子会话—子代理”三层项目协作，处理添加总控身份、直属任务调度、登记、恢复、迁移及架构验收。仅在用户要求该架构或已有可核验项目登记时使用；普通任务和讨论规则文件不构成启用。
 ---
 
@@ -28,7 +28,7 @@ description: 按需启用并管理“总控会话—独立子会话—子代理�
 
 总控目标模型为 `gpt-6.1-sol`，各层目标推理强度均为 `medium`。直属下级按规则在 Luna、Terra、Sol 中选用；Astra 仅在具体难题得到用户明确批准后使用。当前模型、设置或切换结果不能核验时明确记录，不声称已设置。
 
-[兜底配置原件](references/fallback-config.toml) 仅作用户提供的配置参考，不会自动加载或生效。其中配置键、模型名及并发值是否受当前客户端支持必须另行核验；`max_concurrent_threads_per_session = 3` 不是无限创建或新增子会话的授权。用户未要求配置安装时，不修改全局配置。若用户要求安装配置，先依据当前产品文档或实际配置 schema 验证字段，保留可恢复备份，只合并已确认且已授权的设置。
+[兜底配置原件](references/fallback-config.toml) 定义本 Skill 的六项配置目标。用户要求安装本 Skill 的 v1.2 完整安装包或明确要求应用配置时，按 [配置操作指引](references/configuration-guide.md) 备份并合并 `config.toml`，卸载时按所有权记录逐项恢复。仅调用 Skill、添加总控身份、修改或打包 Skill 不等于授权修改当前全局配置。配置键的支持情况、模型可用性和实际加载结果分别核验；`max_concurrent_threads_per_session = 3` 不是新增子会话的授权。
 
 ## 状态、恢复与验收
 

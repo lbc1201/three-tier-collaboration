@@ -1,10 +1,10 @@
-# 三层项目协作 Skill v1.1
+# 三层项目协作 Skill v1.2
 
-v1.1 新增：安装时向全局 `AGENTS.md` 写入受管理的触发段；卸载时仅移除该段。完整三层规则仍放在 Skill 中。v1.0 不会写全局规则。
+v1.2 新增：安装时安全合并 `config.toml` 的六项默认配置，卸载时逐项恢复。保留 v1.1 的全局 `AGENTS.md` 触发段功能；完整三层规则仍放在 Skill 中。
 
 ## 1. 自动安装（约 1 分钟）
 
-1. 解压 `three-tier-collaboration-v1.1.zip`（仓库内也提供 `three-tier-collaboration.zip`）。
+1. 解压 `three-tier-collaboration-v1.2.zip`（仓库内也提供 `three-tier-collaboration.zip`）。
 2. 在同时包含 `install.ps1`、`README.md` 的目录空白处右键，选择“在终端中打开”。
 3. 执行安装命令：
 
@@ -12,7 +12,7 @@ v1.1 新增：安装时向全局 `AGENTS.md` 写入受管理的触发段；卸�
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\install.ps1
 ```
 
-无需管理员权限。`-ExecutionPolicy Bypass` 仅作用于本次启动的进程，不修改永久执行策略。PowerShell 7 也可使用 `pwsh -NoProfile -File .\install.ps1`。
+无需管理员权限；需要已安装、命令行可调用的 Python 3.11+，不需要额外 Python 包。缺少依赖时会在修改前停止。`-ExecutionPolicy Bypass` 仅作用于本次启动的进程，不修改永久执行策略。PowerShell 7 也可使用 `pwsh -NoProfile -File .\install.ps1`。
 
 脚本先查找已有同名安装；未安装时，优先使用已设置的 `CODEX_HOME\skills`，其次选择已有个人 Skill 目录。全新环境默认 `%USERPROFILE%\.agents\skills`；本机已有 `.codex\skills`，通常会选择该目录。多个已有安装会要求明确指定目录。
 
@@ -51,7 +51,7 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\uninstall.ps1
 
 升级前将旧 Skill 移到所选 `skills` 目录旁的 `skill-backups`，卸载也采用移动备份，不递归删除文件。`AGENTS.md` 每次实际修改前均保留完整备份，位置显示在终端。
 
-卸载只移除标记段，不用旧版整份文件覆盖当前文件，因而保留用户后来添加的其他规则。分隔空行及安装时新建的空规则文件可保留。即使 Skill 已被手动移走，卸载脚本仍可清理孤立触发段。重复卸载不会报错；不修改 `config.toml`，不删除项目成果、状态或登记记录。
+卸载只移除标记段，不用旧版整份文件覆盖当前文件，因而保留用户后来添加的其他规则。分隔空行及安装时新建的空规则文件可保留。即使 Skill 已被手动移走，完整包的卸载脚本仍可清理孤立触发段及本包接管的配置值。重复卸载不会报错；不删除项目成果、状态或登记记录。
 
 安装失败时会尽量恢复原 Skill，并保留相关副本。恢复 Skill 可将备份目录以 `three-tier-collaboration` 为名移回原 `skills` 目录；全局规则需先对比当前内容与备份，避免覆盖之后的编辑。仅恢复 Skill 文件不会自动恢复触发段，可重新运行安装脚本。
 
@@ -73,16 +73,41 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\uninstall.ps1
 
 ## 5. 手动安装与版本目录
 
-若只手动复制 `three-tier-collaboration` 文件夹到个人 Skill 目录，则不会写入全局触发段。完整 v1.1 安装请使用 `install.ps1`。正确目录层级是 `skills\three-tier-collaboration\SKILL.md`，不要多套同名目录，也不要只复制一个文件。
+若只手动复制 `three-tier-collaboration` 文件夹到个人 Skill 目录，则不会写入全局触发段，也不会应用配置。完整 v1.2 安装请使用 `install.ps1`。正确目录层级是 `skills\three-tier-collaboration\SKILL.md`，不要多套同名目录，也不要只复制一个文件。
 
 截至 2026-10-28，官方文档列出的个人 Skill 目录为 `$HOME/.agents/skills`，Windows 对应 `%USERPROFILE%\.agents\skills`；当前客户端实际也从 `%USERPROFILE%\.codex\skills` 识别过本 Skill。优先使用客户端已有目录，同一 Skill 只安装一份。
 
 官方依据：[Build skills](https://learn.chatgpt.com/docs/build-skills)、[AGENTS.md](https://learn.chatgpt.com/docs/agent-configuration/agents-md)。
 
-`three-tier-collaboration/references/fallback-config.toml` 为原始配置参考，不自动加载，不要用它覆盖全局 `config.toml`。配置字段、模型名和并发设置须按当前客户端另行核验。
+`three-tier-collaboration/references/fallback-config.toml` 保存六项配置目标。v1.2 安装器会按这些目标合并配置，不用此文件覆盖整份全局配置。字段依据见 [OpenAI 配置参考](https://learn.chatgpt.com/docs/config-file/config-reference)。模型可用性和客户端实际加载结果需另行核验。
 
-## 6. 测试与交付范围
+## 6. config.toml 的合并与恢复
 
-`tests/test-installers.ps1` 仅在随机临时目录中运行，并显式使用临时 `AGENTS.md`。覆盖安装、升级备份、可恢复卸载、重复执行、预览、原规则及后续编辑保留、UTF-8/UTF-16 编码、异常标记、并发编辑、override 优先级、孤立触发段清理与目录选择。测试文件保留供检查。
+安装器管理的六项配置为：
 
-本包含 Skill、README、VERSION、安装卸载脚本、触发模板、辅助脚本和测试。制作方仅在临时目录测试，未安装到你的真实 Codex Skill 目录，也未改写实际全局 `AGENTS.md`。只有你运行安装脚本后才会修改。
+```toml
+model = "gpt-6.1-sol"
+model_reasoning_effort = "medium"
+
+[agents]
+enabled = true
+max_concurrent_threads_per_session = 3
+default_subagent_model = "gpt-6-luna"
+default_subagent_reasoning_effort = "medium"
+```
+
+配置位置默认是实际 `AGENTS.md` 所在目录的 `config.toml`。可传入 `-ConfigPath "D:\指定目录\config.toml"`，卸载时使用相同参数。`-WhatIf` 会预检，但不修改配置或生成所有权记录。
+
+保留其他字段和注释，包括提供商、MCP、插件、审批与安全配置。写入前检查 TOML 语法，生成修改计划，备份原文件，再验证修改后解析结果只涉及目标字段。六项目标已经满足时，不改写配置内容，也不接管这些已有值。
+
+配置旁的 `config.toml.three-tier-collaboration.json` 记录本包实际修改的键及原值。重复安装保留原始基线；卸载只恢复当前仍等于本包安装值的受管项。用户后来手动改过的项保持原样，不用整份旧备份覆盖配置。可能保留空 `[agents]` 表、空文件及已关闭的记录；被管理值按语义恢复，不保证原引号样式。
+
+支持 UTF-8、UTF-8 BOM 及常见根级键和 `[agents]` 表。复杂内联或点号 agents 写法需要先整理为普通表；不支持 UTF-16 配置。发现旧别名 `agents.max_threads` 时会停止，避免与新键重复。布局不支持、语法错误或并发修改均在覆盖前报告，不强行重写。
+
+安装器发生后续失败时，会尝试恢复已经写入的触发段、配置与原 Skill，保留备份。配置备份可能包含凭据，请仅保存在个人本机，不上传 GitHub 或发到聊天。安装完重启 Codex 后再核验实际加载，不代表当前聊天模型已自动切换。
+
+## 7. 测试与交付范围
+
+`tests/test-installers.ps1` 仅在随机临时目录中运行，并显式使用临时 `AGENTS.md` 和 `config.toml`。覆盖安装、升级备份、可恢复卸载、配置合并与恢复、重复执行、预览、原规则及后续编辑保留、AGENTS 编码、异常标记、并发编辑、override 优先级、孤立触发段清理与目录选择。`python tests/test_config.py` 另测配置的备份、语义保留、幂等、回滚及冲突处理。测试文件保留供检查。
+
+本包含 Skill、README、VERSION、安装卸载脚本、触发模板、辅助脚本和测试。本次制作仅在临时目录验证配置合并；已安装 Skill 的指引与辅助脚本可单独更新，真实全局规则与配置仅在用户明确授权应用或运行完整安装器后修改。
