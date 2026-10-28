@@ -2,6 +2,25 @@
 
 v1.3 修订总控漏派发问题：已登记总控每轮实质执行前先派给匹配的直属子会话，修改派回原会话；“简单任务”“报告结构调整”不能绕过。全局触发段也覆盖已登记成员的后续项目任务。保留 v1.2 的配置合并恢复与 v1.1 的触发段安装卸载功能。
 
+## 版本迭代
+
+**当前版本：v1.3。** 以下按新到旧排列，日期均为北京时间。后续功能更新在此追加记录，并同步更新 `VERSION`、Skill 元数据和对应安装包。
+
+| 版本 | 日期 | 本版新增或修订 | 完整安装时影响的全局文件 |
+| --- | --- | --- | --- |
+| **v1.3** | 2026-10-28 | 修订总控漏派发：实质工作先实际派发、修改交回原子会话；明确纯排版与实质改写的边界；区分发送、接续、返回和验收；防止以“简单任务”“报告结构调整”绕过分工；触发段覆盖已登记项目的后续任务 | 受管理的 `AGENTS.md` 触发段；沿用 v1.2 的六项 `config.toml` 配置合并与恢复 |
+| **v1.2** | 2026-10-28 | 新增 `config.toml` 六项配置的合并、备份及所有权记录；重复安装保留基线；卸载逐项恢复，保留后续用户修改；新增 TOML 专项测试，安装需要 Python 3.11+ | `AGENTS.md` 触发段及六项 `config.toml` 配置，保留其他配置 |
+| **v1.1** | 2026-10-28 | 新增全局 `AGENTS.md` 触发段；安装时追加或更新唯一标记段，卸载时只移除该段；保留其他规则、编码和备份 | 仅 `AGENTS.md` 的受管理触发段，不修改 `config.toml` |
+| **v1.0** | 2026-10-28 | 将三层架构规则与兜底 TOML 转为独立 Skill；提供 README、安装卸载脚本、版本备份及可恢复卸载 | 不修改全局 `AGENTS.md` 或 `config.toml`；TOML 仅作参考 |
+
+### 安装包与升级说明
+
+仓库保留 [v1.3](https://github.com/lbc1201/three-tier-collaboration/blob/main/three-tier-collaboration-v1.3.zip)、[v1.2](https://github.com/lbc1201/three-tier-collaboration/blob/main/three-tier-collaboration-v1.2.zip)、[v1.1](https://github.com/lbc1201/three-tier-collaboration/blob/main/three-tier-collaboration-v1.1.zip) 安装包；`three-tier-collaboration.zip` 指向当前版本，旧版本号文件保留对应历史内容。v1.0 在此保留迭代记录。
+
+升级时，解压目标版本并运行其中的 `install.ps1`；无需先卸载旧版，安装器会备份已有 Skill。**从 v1.0/v1.1 升级到 v1.2 及以后版本，会新增六项全局配置的合并行为**，可先追加 `-WhatIf` 查看预览。仅下载或解压 ZIP 不会更新本机安装，也不会修改全局文件。
+
+新版规则要求在版本变化或上下文不确定时主动重读 Skill。正在进行的旧聊天，建议升级后明确要求它读取新版一次；不需要每轮重复发送“重新加载”。磁盘更新不保证所有运行中聊天立即采用新版上下文。v1.3 加强的是执行指令和验收要求，不是运行时拦截器，不承诺模型绝不漏派任务。
+
 ## 1. 自动安装（约 1 分钟）
 
 1. 解压 `three-tier-collaboration-v1.3.zip`（仓库内也提供 `three-tier-collaboration.zip`）。
@@ -79,7 +98,7 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\uninstall.ps1
 
 官方依据：[Build skills](https://learn.chatgpt.com/docs/build-skills)、[AGENTS.md](https://learn.chatgpt.com/docs/agent-configuration/agents-md)。
 
-`three-tier-collaboration/references/fallback-config.toml` 保存六项配置目标。v1.2 安装器会按这些目标合并配置，不用此文件覆盖整份全局配置。字段依据见 [OpenAI 配置参考](https://learn.chatgpt.com/docs/config-file/config-reference)。模型可用性和客户端实际加载结果需另行核验。
+`three-tier-collaboration/references/fallback-config.toml` 保存六项配置目标。v1.2 及以后安装器会按这些目标合并配置，不用此文件覆盖整份全局配置。字段依据见 [OpenAI 配置参考](https://learn.chatgpt.com/docs/config-file/config-reference)。模型可用性和客户端实际加载结果需另行核验。
 
 ## 6. config.toml 的合并与恢复
 
@@ -120,7 +139,7 @@ v1.3 对以下情况规定了不同处理方式：
 
 用户明确指定总控亲自执行的具体任务可按授权范围例外。总控仍负责关键独立验收，不将整项重做包装为验收。若已经漏派，保留事实，将草稿交下级实质核验或修改；补做审查不等于原流程已合规。
 
-这些是指令与验收边界，不是运行时拦截器；不能保证模型绝不漏派。规则和安装脚本验证通过不代表真实多会话行为或完整架构已经通过测试。正在进行的总控聊天需显式重新加载已更新 Skill；更新磁盘文件不会撤回已发生的执行，也不保证替换所有旧上下文。
+这些是指令与验收边界，不是运行时拦截器；不能保证模型绝不漏派。规则和安装脚本验证通过不代表真实多会话行为或完整架构已经通过测试。正在进行的总控聊天建议在升级后明确读取新版一次，无需每轮重复；更新磁盘文件不会撤回已发生的执行，也不保证替换所有旧上下文。
 
 `tests/test-installers.ps1` 仅在随机临时目录中运行，并显式使用临时 `AGENTS.md` 和 `config.toml`。覆盖安装、升级备份、可恢复卸载、配置合并与恢复、重复执行、预览、原规则及后续编辑保留、AGENTS 编码、异常标记、并发编辑、override 优先级、孤立触发段清理与目录选择。`python tests/test_config.py` 另测配置的备份、语义保留、幂等、回滚及冲突处理。测试文件保留供检查。
 
