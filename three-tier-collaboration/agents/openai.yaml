@@ -1,0 +1,4 @@
+interface:
+  display_name: "三层项目协作"
+  short_description: "按需管理总控、独立子会话与子代理，保留审批、恢复及逐级验收约束"
+  default_prompt: "使用 $three-tier-collaboration 检查当前项目的三层协作启用条件与工具能力，并按用户已授权的范围执行。"
