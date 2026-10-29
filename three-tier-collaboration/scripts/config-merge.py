@@ -12,7 +12,7 @@ import tomllib
 import uuid
 
 SETTINGS = {
-    'model': 'gpt-6.1-sol', 'model_reasoning_effort': 'medium',
+    'model_reasoning_effort': 'medium',
     'agents.enabled': True, 'agents.max_concurrent_threads_per_session': 3,
     'agents.default_subagent_model': 'gpt-6-luna',
     'agents.default_subagent_reasoning_effort': 'medium',
@@ -162,6 +162,9 @@ def plan(action, path):
                  'config_path': str(path), 'keys': new_owned}
     else:
         for key, saved in owned.items():
+            if key == 'model':
+                warnings.append('Preserved the previously managed default model: model')
+                continue
             if key not in SETTINGS:
                 raise ValueError('Unexpected managed key in configuration receipt.')
             current = get(parsed(raw), key)

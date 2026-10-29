@@ -1,4 +1,4 @@
-# 三层项目协作 Skill v1.3
+# 三层项目协作 Skill v1.4
 
 在 Codex 中按“总控会话 → 独立子会话 → 子代理”组织项目，支持逐级派发、验收、状态保存与恢复。
 
@@ -6,11 +6,11 @@
 
 ### 方式一：向 Codex 发送安装指令
 
-将下面的内容直接发送给 Codex，也可以先下载并附上 [v1.3 完整 ZIP](https://github.com/lbc1201/three-tier-collaboration/blob/main/three-tier-collaboration-v1.3.zip)：
+将下面的内容直接发送给 Codex，也可以先下载并附上 [v1.4 完整 ZIP](https://github.com/lbc1201/three-tier-collaboration/blob/main/three-tier-collaboration-v1.4.zip)：
 
 ```text
-请安装 https://github.com/lbc1201/three-tier-collaboration 的 v1.3 完整包。
-先读取 README，再使用完整包的 install.ps1 安装 Skill、全局 AGENTS.md 触发段和六项 config.toml 默认配置，不要只复制 SKILL.md。
+请安装 https://github.com/lbc1201/three-tier-collaboration 的 v1.4 完整包。
+先读取 README，再使用完整包的 install.ps1 安装 Skill、全局 AGENTS.md 触发段和五项 config.toml 默认配置，保留现有总控默认模型，不要只复制 SKILL.md。
 保留其他全局规则和配置，修改前备份，完成后核验安装版本、触发段和配置结果。若已有完整三层规则写在标记段之外，先指出其位置，不要静默删除。若仓库不可访问或缺少依赖，说明具体缺口。
 ```
 
@@ -18,7 +18,7 @@
 
 ### 方式二：使用 PowerShell 命令
 
-1. 下载并完整解压 [v1.3 ZIP](https://github.com/lbc1201/three-tier-collaboration/blob/main/three-tier-collaboration-v1.3.zip)。
+1. 下载并完整解压 [v1.4 ZIP](https://github.com/lbc1201/three-tier-collaboration/blob/main/three-tier-collaboration-v1.4.zip)。
 2. 在同时包含 `install.ps1` 和 `README.md` 的目录打开终端。
 3. 执行安装命令：
 
@@ -90,7 +90,7 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\uninstall.ps1
 新版规则要求在版本变化、未加载或上下文不确定时主动重读 Skill。正在进行的旧聊天，建议升级后发送一次：
 
 ```text
-读取已安装的 three-tier-collaboration v1.3，并按新版规则继续。
+读取已安装的 three-tier-collaboration v1.4，并按新版规则继续。
 ```
 
 **不需要每轮重复发送“重新加载”。** 更新磁盘文件不保证所有运行中聊天立即采用新版上下文；必要时重启 Codex。
@@ -102,8 +102,8 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\uninstall.ps1
 | 三层分工 | 总控管理独立、可恢复的子会话；子会话按需管理直属子代理。优先复用，不把临时代理冒充独立子会话，也不越级调度 |
 | 先派发、后整合 | 总控在实质检索、分析、编程、计算或内容改写前先实际派发。改变研究问题、数据范围、方法、机制、结论或问题层级，不能以“简单”“报告结构调整”为由自行执行 |
 | 逐级验收与恢复 | 分别核验消息发送、任务接续、成果返回与验收；保存真实 ID、职责、任务、状态和交接。额度恢复后检查相关直属子会话，按依赖恢复未完成任务 |
-| 模型与授权管理 | 总控目标模型为 `gpt-6.1-sol`，各层目标推理强度为 `medium`；直属下级按任务选择 Luna、Terra、Sol。新增子会话、迁移和 Astra 调用遵守相应授权边界 |
-| 安装、备份与卸载 | 安装 Skill 和全局触发段，合并六项默认配置；备份旧版本与被修改文件。卸载移出 Skill、移除标记段，并按所有权记录恢复配置 |
+| 模型与授权管理 | 总控模型由用户自由选择；各层目标推理强度为 `medium`，直属下级按任务选择 Luna、Terra、Sol。下级自动调度 Astra、创建子会话与迁移遵守相应授权边界 |
+| 安装、备份与卸载 | 安装 Skill 和全局触发段，合并五项默认配置，保留顶层 `model`；备份旧版本与被修改文件。卸载移出 Skill、移除标记段，并按所有权记录恢复配置 |
 
 总控可直接处理协调、关键独立验收，以及已验收内容的排版、编号和机械整合；用户明确指定总控亲自完成的具体任务可按授权范围例外。没有匹配下级、授权或工具时，说明具体缺口，不静默接管。漏派后补做复核可修复质量问题，但不能追认原流程合规。
 
@@ -118,12 +118,11 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\uninstall.ps1
 
 修改前备份整份文件，重复安装不重复添加触发段；卸载只移除该段，保留标记之外的原文与后续用户编辑。个人规则应写在标记外。支持 AGENTS.md 的 UTF-8/UTF-16 编码与 BOM；若存在优先加载的非空 `AGENTS.override.md`、标记异常或并发编辑，先停止并说明原因。原有完整三层规则若在标记之外，不自动删除。
 
-### 六项默认配置
+### 五项默认配置
 
-从 v1.2 起，完整安装器合并以下配置，不覆盖整份 `config.toml`：
+从 v1.4 起，完整安装器合并以下五项配置；不写入或删除顶层 `model`，保留总控的模型选择：
 
 ```toml
-model = "gpt-6.1-sol"
 model_reasoning_effort = "medium"
 
 [agents]
@@ -133,7 +132,7 @@ default_subagent_model = "gpt-6-luna"
 default_subagent_reasoning_effort = "medium"
 ```
 
-保留其他字段和注释，包括提供商、MCP、插件、审批及安全配置。写入前检查 TOML 语法及完整语义差异；已满足目标的值不改写、不接管。配置旁的 `config.toml.three-tier-collaboration.json` 记录本 Skill 实际改过的键及原值。重复安装保留原始基线；卸载只恢复当前仍等于安装值的受管项，保留用户后来修改的值，不用整份旧备份覆盖配置。
+保留其他字段和注释，包括提供商、MCP、插件、审批及安全配置。写入前检查 TOML 语法及完整语义差异；已满足目标的值不改写、不接管。配置旁的 `config.toml.three-tier-collaboration.json` 记录本 Skill 实际改过的键及原值。重复安装保留原始基线；从旧版升级时放弃对 `model` 的旧管理记录但保留当前值，使用 v1.4 直接卸载旧版也不会改写该值。卸载只恢复当前仍等于安装值的其他受管项，保留用户后来修改的值，不用整份旧备份覆盖配置。
 
 配置合并支持 UTF-8、UTF-8 BOM 及常见根级键和 `[agents]` 表。UTF-16 配置、无法安全定位的复杂布局、旧别名 `agents.max_threads` 冲突、语法错误或并发改写会在覆盖前报告。被管理值按语义恢复，不保证原引号样式；卸载可保留空表、空文件及已关闭的记录。备份位置显示在终端；配置备份可能含凭据，请仅保存在个人本机。
 
@@ -147,15 +146,16 @@ Skill 提供执行指令和验收要求，不是运行时拦截器，不能保�
 
 ## 4. 版本迭代
 
-**当前版本：v1.3。** 按新到旧排列，日期均为北京时间。
+**当前版本：v1.4。** 按新到旧排列，日期均为北京时间。
 
 | 版本 | 日期 | 新增或修订 | 完整安装时的全局文件影响 |
 | --- | --- | --- | --- |
+| **v1.4** | 2026-10-30 | 总控不再限定固定模型，用户可选择可用模型；安装和卸载不再修改顶层 `model`；保留原有分工、推理强度及下级自动调度规则 | `AGENTS.md` 触发段及五项 `config.toml` 配置；保留总控当前默认模型 |
 | **v1.3** | 2026-10-28 | 修订总控漏派发：实质执行前实际派发、修改交回原子会话；明确纯排版与实质改写的边界；区分发送、接续、返回和验收；触发段覆盖已登记项目的后续任务 | 更新受管理的 `AGENTS.md` 触发段；沿用六项 `config.toml` 配置合并与恢复 |
 | **v1.2** | 2026-10-28 | 新增六项配置合并、备份及所有权记录；重复安装保留基线；卸载逐项恢复并保留后续用户修改；新增 TOML 专项测试，需要 Python 3.11+ | `AGENTS.md` 触发段及六项 `config.toml` 配置，保留其他配置 |
 | **v1.1** | 2026-10-28 | 新增全局触发段的安装、更新与卸载；保留其他规则、编码和备份 | 仅 `AGENTS.md` 的受管理触发段，不修改 `config.toml` |
 | **v1.0** | 2026-10-28 | 将三层架构规则与兜底 TOML 转为 Skill，提供 README、安装卸载脚本、版本备份和可恢复卸载 | 不修改全局 `AGENTS.md` 或 `config.toml`；TOML 仅作参考 |
 
-历史安装包：[v1.3](https://github.com/lbc1201/three-tier-collaboration/blob/main/three-tier-collaboration-v1.3.zip) · [v1.2](https://github.com/lbc1201/three-tier-collaboration/blob/main/three-tier-collaboration-v1.2.zip) · [v1.1](https://github.com/lbc1201/three-tier-collaboration/blob/main/three-tier-collaboration-v1.1.zip)。`three-tier-collaboration.zip` 为当前版本；v1.0 在此保留迭代记录。
+历史安装包：[v1.4](https://github.com/lbc1201/three-tier-collaboration/blob/main/three-tier-collaboration-v1.4.zip) · [v1.3](https://github.com/lbc1201/three-tier-collaboration/blob/main/three-tier-collaboration-v1.3.zip) · [v1.2](https://github.com/lbc1201/three-tier-collaboration/blob/main/three-tier-collaboration-v1.2.zip) · [v1.1](https://github.com/lbc1201/three-tier-collaboration/blob/main/three-tier-collaboration-v1.1.zip)。`three-tier-collaboration.zip` 为当前版本；v1.0 在此保留迭代记录。
 
-从 v1.0/v1.1 升级到 v1.2 及以后版本，会新增六项全局配置的合并行为，可先用 `-WhatIf` 预览。后续功能迭代在本节追加记录，并同步版本标识与安装包；本次仅整理 README，版本保持 v1.3。
+v1.2 和 v1.3 会管理六项配置，包括顶层 `model`；v1.4 只管理其余五项。升级或直接使用 v1.4 卸载旧版时保留当前顶层 `model`，可先用 `-WhatIf` 预览。后续功能迭代在本节追加记录，并同步版本标识与安装包；本次更新总控模型选择规则，版本升级为 v1.4。

@@ -17,6 +17,7 @@ $config = Join-Path (Split-Path -Parent $agents) 'config.toml'
 [IO.File]::WriteAllText($config, "# retain config comment`nmodel = 'before-install'`napproval_policy = 'on-request'`n")
 & (Join-Path $package 'install.ps1') -InstallRoot $scan -AgentsPath $agents
 Assert (Test-Path -LiteralPath (Join-Path $target 'SKILL.md')) 'Fresh install failed.'
+Assert ([IO.File]::ReadAllText($config).Contains("model = 'before-install'")) 'Install changed the user-selected default model.'
 Assert ((Get-FileHash -LiteralPath (Join-Path $target 'SKILL.md')).Hash -eq
     (Get-FileHash -LiteralPath (Join-Path $package 'three-tier-collaboration\SKILL.md')).Hash) 'Installed file differs.'
 [IO.File]::WriteAllText((Join-Path $target 'local-note.txt'), 'preserve my changes')
@@ -44,7 +45,7 @@ Assert ([IO.File]::ReadAllText($agents) -eq $installedRules) 'Uninstall WhatIf c
 Assert ([IO.File]::ReadAllText($agents).StartsWith($existingRules)) 'Uninstall changed existing rules.'
 Assert ([IO.File]::ReadAllText($agents).Contains('Retain this too.')) 'Uninstall lost later user edits.'
 Assert (-not [IO.File]::ReadAllText($agents).Contains('<!-- BEGIN three-tier-collaboration managed trigger -->')) 'Trigger still present.'
-Assert ([IO.File]::ReadAllText($config).Contains('before-install')) 'Original model was not restored.'
+Assert ([IO.File]::ReadAllText($config).Contains("model = 'before-install'")) 'Uninstall changed the user-selected default model.'
 Assert ([IO.File]::ReadAllText($config).Contains("approval_policy = 'on-request'")) 'Unrelated config changed.'
 Assert (-not (Test-Path -LiteralPath $target)) 'Uninstall left target installed.'
 $saved = @(Get-ChildItem -LiteralPath (Join-Path $testRoot 'skill-backups') -Directory -Filter '*uninstalled*')

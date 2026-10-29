@@ -29,7 +29,7 @@ $configPlan = Get-ConfigPlan 'install' $ConfigPath
 if ((Test-Inside $agentsFile $target) -or (Test-Inside $agentsFile $source)) {
     throw 'Global AGENTS.md must be outside the package and installation directories.'
 }
-if (-not $PSCmdlet.ShouldProcess("$target ; $agentsFile ; $ConfigPath", "Install v$packageVersion skill, global trigger and six configuration defaults; back up existing files")) { return }
+if (-not $PSCmdlet.ShouldProcess("$target ; $agentsFile ; $ConfigPath", "Install v$packageVersion skill, global trigger and five configuration defaults; preserve the default model and back up existing files")) { return }
 
 New-Item -ItemType Directory -Path $backupRoot -Force | Out-Null
 $staging = New-BackupPath $backupRoot 'staging'

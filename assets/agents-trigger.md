@@ -1,5 +1,5 @@
 <!-- BEGIN three-tier-collaboration managed trigger -->
-## 三层协作 Skill 触发规则（v1.3）
+## 三层协作 Skill 触发规则（v1.4）
 
 当用户在当前聊天直接发送“添加总控身份”，或要求管理、恢复、迁移、检验本项目已登记的三层协作时，先加载并完整读取已安装的 `three-tier-collaboration` Skill 及其引用的架构规则，再处理当前任务。必要时按名称查找 Skill；不可用时明确说明缺失，不得假装已经加载。
 

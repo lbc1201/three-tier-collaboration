@@ -35,7 +35,7 @@ class ConfigTests(unittest.TestCase):
     def test_defaults_and_uninstall(self):
         self.install()
         self.assertEqual(tomllib.loads(self.path.read_text()), {
-            'model': 'gpt-6.1-sol', 'model_reasoning_effort': 'medium',
+            'model_reasoning_effort': 'medium',
             'agents': {'enabled': True, 'max_concurrent_threads_per_session': 3,
                        'default_subagent_model': 'gpt-6-luna', 'default_subagent_reasoning_effort': 'medium'}})
         merge.apply(merge.plan('uninstall', self.path), self.backups)
@@ -69,15 +69,43 @@ class ConfigTests(unittest.TestCase):
         self.assertEqual(merge.parsed(self.path.read_bytes())['model'], 'original')
 
     def test_preserve_later_user_edit(self):
-        self.path.write_text('model = "original"\n', encoding='utf-8')
+        self.path.write_text('model = "original"\nmodel_reasoning_effort = "low"\n', encoding='utf-8')
         self.install()
-        self.path.write_bytes(self.path.read_bytes().replace(b'"gpt-6.1-sol"', b'"user-choice"') + b'\n[other]\ncustom = true\n')
+        self.path.write_bytes(self.path.read_bytes().replace(b'"medium"', b'"high"') + b'\n[other]\ncustom = true\n')
         edit = merge.plan('uninstall', self.path)
-        self.assertIn('Preserved a later user change: model', edit['warnings'])
+        self.assertIn('Preserved a later user change: model_reasoning_effort', edit['warnings'])
         merge.apply(edit, self.backups)
         data = merge.parsed(self.path.read_bytes())
-        self.assertEqual(data['model'], 'user-choice')
+        self.assertEqual(data['model'], 'original')
+        self.assertEqual(data['model_reasoning_effort'], 'high')
         self.assertTrue(data['other']['custom'])
+
+    def test_user_model_choice_survives_install_update_uninstall(self):
+        self.path.write_text('model = "gpt-6-astra" # user choice\n', encoding='utf-8')
+        self.install()
+        self.install()
+        self.assertEqual(merge.parsed(self.path.read_bytes())['model'], 'gpt-6-astra')
+        self.assertIn(b'model = "gpt-6-astra" # user choice', self.path.read_bytes())
+        merge.apply(merge.plan('uninstall', self.path), self.backups)
+        self.assertEqual(merge.parsed(self.path.read_bytes())['model'], 'gpt-6-astra')
+
+    def test_legacy_receipt_model_does_not_override_user(self):
+        for upgrade_first in (False, True):
+            with self.subTest(upgrade_first=upgrade_first):
+                self.path.write_text('model = "gpt-6.1-sol"\n[agents]\nenabled = true\n', encoding='utf-8')
+                receipt = Path(str(self.path) + '.three-tier-collaboration.json')
+                receipt.write_text(json.dumps({'owner': 'three-tier-collaboration', 'version': '1.2', 'active': True,
+                    'config_path': str(self.path), 'keys': {
+                        'model': {'had_value': True, 'original': 'gpt-6-luna', 'installed': 'gpt-6.1-sol'},
+                        'agents.enabled': {'had_value': True, 'original': False, 'installed': True}}}), encoding='utf-8')
+                if upgrade_first:
+                    self.install()
+                    state = json.loads(receipt.read_text())
+                    self.assertNotIn('model', state['keys'])
+                merge.apply(merge.plan('uninstall', self.path), self.backups)
+                data = merge.parsed(self.path.read_bytes())
+                self.assertEqual(data['model'], 'gpt-6.1-sol')
+                self.assertFalse(data['agents']['enabled'])
 
     def test_rollback(self):
         original = b'model = "before"\n'
@@ -102,7 +130,7 @@ class ConfigTests(unittest.TestCase):
         self.assertFalse(self.backups.exists())
 
     def test_unsupported_and_invalid_layouts_leave_bytes_intact(self):
-        for raw in (b'agents = {enabled = false}\n', b'model = ["unexpected"]\n',
+        for raw in (b'agents = {enabled = false}\n', b'model_reasoning_effort = ["unexpected"]\n',
                     b'[agents]\nmax_threads = 8\n', b'model = "bad\n'):
             self.path.write_bytes(raw)
             with self.assertRaises((ValueError, tomllib.TOMLDecodeError)):
